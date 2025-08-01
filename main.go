@@ -1,4 +1,4 @@
-package code_editing_agent
+package main
 
 import (
 	"bufio"
@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	client := anthropic.NewClient(os.Getenv("ANTHROIC_ACCESS_TOKEN"))
+	client := anthropic.NewClient()
 	scanner := bufio.NewScanner(os.Stdin)
 	getUserMessage := func() (string, bool) {
 		if !scanner.Scan() {
