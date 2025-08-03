@@ -10,6 +10,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// 测试清理辅助函数
+func cleanupTestDir(t *testing.T, dir string) {
+	t.Helper()
+	if err := os.RemoveAll(dir); err != nil {
+		t.Logf("Failed to remove test directory %s: %v", dir, err)
+	}
+}
+
+func restoreWorkingDir(t *testing.T, originalWd string) {
+	t.Helper()
+	if err := os.Chdir(originalWd); err != nil {
+		t.Logf("Failed to restore working directory to %s: %v", originalWd, err)
+	}
+}
+
 func TestReadFileInput(t *testing.T) {
 	t.Run("JSON序列化和反序列化", func(t *testing.T) {
 		input := ReadFileInput{
@@ -46,12 +61,12 @@ func TestReadFile(t *testing.T) {
 	// 创建临时目录用于测试
 	tempDir, err := os.MkdirTemp("", "readfile_test")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempDir)
+	defer cleanupTestDir(t, tempDir)
 
 	// 保存当前工作目录
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
+	defer restoreWorkingDir(t, originalWd)
 
 	// 切换到临时目录
 	err = os.Chdir(tempDir)
@@ -226,12 +241,12 @@ func TestReadFileDefinition(t *testing.T) {
 		// 创建临时文件用于测试
 		tempDir, err := os.MkdirTemp("", "readfile_def_test")
 		require.NoError(t, err)
-		defer os.RemoveAll(tempDir)
+		defer cleanupTestDir(t, tempDir)
 
 		// 保存当前工作目录
 		originalWd, err := os.Getwd()
 		require.NoError(t, err)
-		defer os.Chdir(originalWd)
+		defer restoreWorkingDir(t, originalWd)
 
 		// 切换到临时目录
 		err = os.Chdir(tempDir)
@@ -259,13 +274,13 @@ func TestReadFileBehaviorEdgeCases(t *testing.T) {
 	// 保存当前工作目录
 	originalWd, err := os.Getwd()
 	require.NoError(t, err)
-	defer os.Chdir(originalWd)
+	defer restoreWorkingDir(t, originalWd)
 
 	t.Run("读取大文件", func(t *testing.T) {
 		// 创建临时目录
 		tempDir, err := os.MkdirTemp("", "readfile_large_test")
 		require.NoError(t, err)
-		defer os.RemoveAll(tempDir)
+		defer cleanupTestDir(t, tempDir)
 
 		// 切换到临时目录
 		err = os.Chdir(tempDir)
@@ -296,7 +311,7 @@ func TestReadFileBehaviorEdgeCases(t *testing.T) {
 		// 创建临时目录
 		tempDir, err := os.MkdirTemp("", "readfile_newline_test")
 		require.NoError(t, err)
-		defer os.RemoveAll(tempDir)
+		defer cleanupTestDir(t, tempDir)
 
 		// 切换到临时目录
 		err = os.Chdir(tempDir)

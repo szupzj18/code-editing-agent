@@ -288,7 +288,3 @@ func (a Agent) Run(ctx context.Context) error {
 
 	return nil
 }
-
-func (a Agent) runInference(ctx context.Context, conversation []Message) (*Response, error) {
-	return a.provider.RunInference(ctx, conversation, a.tools)
-}

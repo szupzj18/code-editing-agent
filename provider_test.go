@@ -56,7 +56,11 @@ func TestReadFileTool(t *testing.T) {
 
 	err := os.WriteFile(testFile, []byte(testContent), 0644)
 	require.NoError(t, err)
-	defer os.Remove(testFile)
+	defer func() {
+		if err := os.Remove(testFile); err != nil {
+			t.Logf("Failed to remove test file: %v", err)
+		}
+	}()
 
 	// 测试 ReadFile 工具
 	input := `{"path": "/tmp/test_file.txt"}`
