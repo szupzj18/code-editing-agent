@@ -1,7 +1,10 @@
 package main
 
 import (
+	"os"
 	"testing"
+
+	"agent/tools"
 
 	"github.com/invopop/jsonschema"
 	"github.com/stretchr/testify/assert"
@@ -26,7 +29,7 @@ type NestedStruct struct {
 
 func TestGenerateSchema(t *testing.T) {
 	t.Run("基本功能测试", func(t *testing.T) {
-		schema := GenerateSchema[ReadFileInput]()
+		schema := tools.GenerateSchema[tools.ReadFileInput]()
 
 		assert.NotNil(t, schema)
 		assert.NotNil(t, schema.Properties)
@@ -43,7 +46,7 @@ func TestGenerateSchema(t *testing.T) {
 	})
 
 	t.Run("复杂结构体测试", func(t *testing.T) {
-		schema := GenerateSchema[TestStruct]()
+		schema := tools.GenerateSchema[TestStruct]()
 
 		require.NotNil(t, schema)
 		require.NotNil(t, schema.Properties)
@@ -64,7 +67,7 @@ func TestGenerateSchema(t *testing.T) {
 	})
 
 	t.Run("空结构体测试", func(t *testing.T) {
-		schema := GenerateSchema[EmptyStruct]()
+		schema := tools.GenerateSchema[EmptyStruct]()
 
 		assert.NotNil(t, schema)
 		// 空结构体应该有空的 Properties 或者长度为0
@@ -74,7 +77,7 @@ func TestGenerateSchema(t *testing.T) {
 	})
 
 	t.Run("嵌套结构体测试", func(t *testing.T) {
-		schema := GenerateSchema[NestedStruct]()
+		schema := tools.GenerateSchema[NestedStruct]()
 
 		require.NotNil(t, schema)
 		require.NotNil(t, schema.Properties)
@@ -94,7 +97,7 @@ func TestGenerateSchema(t *testing.T) {
 	})
 
 	t.Run("原有测试保持兼容", func(t *testing.T) {
-		schema := GenerateSchema[ReadFileInput]()
+		schema := tools.GenerateSchema[tools.ReadFileInput]()
 		assert.NotNil(t, schema)
 		t.Log("Generated schema:", schema)
 	})
@@ -102,7 +105,7 @@ func TestGenerateSchema(t *testing.T) {
 
 func TestGenerateSchemaProperties(t *testing.T) {
 	t.Run("验证ReadFileInput的具体属性", func(t *testing.T) {
-		schema := GenerateSchema[ReadFileInput]()
+		schema := tools.GenerateSchema[tools.ReadFileInput]()
 
 		require.NotNil(t, schema.Properties)
 
@@ -122,17 +125,34 @@ func TestGenerateSchemaProperties(t *testing.T) {
 	})
 }
 
+func Test_ReadFileTool(t *testing.T) {
+	// 创建一个测试文件
+	testContent := "Hello, World!"
+	testFile := "/tmp/test_file.txt"
+
+	err := os.WriteFile(testFile, []byte(testContent), 0644)
+	require.NoError(t, err)
+	defer os.Remove(testFile)
+
+	// 测试 ReadFile 工具
+	input := `{"path": "/tmp/test_file.txt"}`
+	result, err := tools.ReadFile([]byte(input))
+
+	assert.NoError(t, err)
+	assert.Equal(t, testContent, result)
+}
+
 // 基准测试
 func BenchmarkGenerateSchema(b *testing.B) {
 	b.Run("ReadFileInput", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = GenerateSchema[ReadFileInput]()
+			_ = tools.GenerateSchema[tools.ReadFileInput]()
 		}
 	})
 
 	b.Run("TestStruct", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			_ = GenerateSchema[TestStruct]()
+			_ = tools.GenerateSchema[TestStruct]()
 		}
 	})
 }
