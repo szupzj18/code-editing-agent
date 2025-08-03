@@ -83,7 +83,7 @@ install-lint:
 .PHONY: security
 security:
 	@echo "Running security checks..."
-	@gosec ./...
+	@gosec -fmt sarif -out gosec.sarif ./...
 
 # 安装gosec
 .PHONY: install-security

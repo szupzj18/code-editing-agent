@@ -31,18 +31,13 @@ jobs:
           ${{ runner.os }}-go-
           
     - name: Download dependencies
-      run: go mod download
-      
-    - name: Verify dependencies
-      run: go mod verify
+      run: make deps
       
     - name: Run vet
-      run: go vet ./...
+      run: make vet
       
     - name: Run tests with coverage
-      run: |
-        go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
-        go tool cover -html=coverage.out -o coverage.html
+      run: make test-coverage
         
     - name: Calculate coverage percentage
       run: |
@@ -67,15 +62,7 @@ jobs:
         format: golang
         
     - name: Generate coverage badge
-      run: |
-        if (( $(echo "$COVERAGE_PERCENT >= 80" | bc -l) )); then
-          COLOR="brightgreen"
-        elif (( $(echo "$COVERAGE_PERCENT >= 60" | bc -l) )); then
-          COLOR="yellow"
-        else
-          COLOR="red"
-        fi
-        curl -s "https://img.shields.io/badge/coverage-${COVERAGE_PERCENT}%25-${COLOR}" > coverage-badge.svg
+      run: make coverage-badge
         
     - name: Archive coverage results
       uses: actions/upload-artifact@v4
@@ -120,10 +107,9 @@ jobs:
         go-version: '1.21'
         
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v4
-      with:
-        version: latest
-        args: --timeout=5m
+      run: |
+        make install-lint
+        make lint
         
   security:
     name: Security Scan
@@ -138,11 +124,10 @@ jobs:
       with:
         go-version: '1.21'
         
-    - name: Install Gosec
-      run: go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
-        
-    - name: Run Gosec Security Scanner
-      run: gosec -fmt sarif -out gosec.sarif ./...
+    - name: Install and run Gosec Security Scanner
+      run: |
+        make install-security
+        make security
         
     - name: Upload SARIF file
       uses: github/codeql-action/upload-sarif@v3
@@ -164,8 +149,7 @@ jobs:
         go-version: '1.21'
         
     - name: Build application
-      run: |
-        go build -v -o ./bin/agent ./...
+      run: make build
         
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
